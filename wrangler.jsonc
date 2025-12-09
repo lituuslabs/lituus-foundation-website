@@ -1,18 +1,16 @@
 /**
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * This configuration is for static-only deployment to Cloudflare Workers (staging environment).
+ * No Worker script is needed - Workers Static Assets will serve files directly from ./dist/
+ * Reference: https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "lituus",
-	"main": "./dist/_worker.js/index.js",
 	"compatibility_date": "2025-12-05",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
 	"assets": {
-		"binding": "ASSETS",
 		"directory": "./dist"
 	},
 	"observability": {

@@ -6,13 +6,13 @@
 	"scripts": {
 		"dev": "astro dev",
 		"build": "astro build",
-		"preview": "astro build && wrangler dev",
+		"preview": "npm run build && wrangler dev",
+		"deploy:staging": "npm run build && wrangler deploy",
+		"deploy": "npm run deploy:staging",
 		"astro": "astro",
-		"deploy": "astro build && wrangler deploy",
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^12.6.12",
 		"@tailwindcss/vite": "^4.1.17",
 		"astro": "^5.16.4",
 		"tailwindcss": "^4.1.17"

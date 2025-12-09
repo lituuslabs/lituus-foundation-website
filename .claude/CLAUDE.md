@@ -3,29 +3,31 @@
 ## Quick Commands
 
 ```bash
-npm run dev       # Astro dev server at localhost:3000
-npm run build     # Build static site to ./dist/
-npm run preview   # Build + test with Wrangler (Workers runtime)
-npm run deploy    # Build + deploy to Cloudflare Workers
-npm run cf-typegen # Generate Cloudflare type definitions
+npm run dev           # Astro dev server at localhost:4321
+npm run build         # Build static site to ./dist/
+npm run preview       # Build + test with Wrangler (Workers runtime)
+npm run deploy:staging # Build + deploy to Cloudflare Workers (staging)
+npm run deploy        # Alias for deploy:staging
+npm run cf-typegen    # Generate Cloudflare type definitions
 ```
 
 ## Project Overview
 
 - **Framework**: Astro 5.16.4
-- **Deployment**: Cloudflare Workers (full-stack capable)
-- **Build Output**: `./dist/` with Worker entry at `./dist/_worker.js/index.js`
+- **Deployment**:
+  - **Staging**: Cloudflare Workers Static Assets
+  - **Production**: GitHub Pages (auto-deployed via GitHub Actions on push to `main`)
+- **Build Output**: `./dist/` (pure static HTML/CSS/JS)
 - **Current State**: Minimal template, early-stage foundation website
 
 ## Architecture
 
-This is a **Cloudflare Workers + Astro** project configured for full-stack deployment:
+This is a **static Astro** project with dual deployment targets:
 
-- **Static Content**: Astro generates HTML/CSS/JS to `./dist/`
-- **Worker Script**: `./dist/_worker.js/index.js` serves assets and can handle dynamic routes
-- **Assets Binding**: Static files served via Workers Assets binding
-- **Image Optimization**: Cloudflare Image Service enabled
-- **Local Testing**: `platformProxy` enabled in Astro config
+- **Static Content**: Astro generates HTML/CSS/JS to `./dist/` (no SSR)
+- **Staging**: Workers Static Assets serves files directly from `./dist/`
+- **Production**: GitHub Pages serves files from `./dist/`
+- **No Adapter**: Pure static output, no Cloudflare adapter needed
 
 ## Project Structure
 
@@ -42,12 +44,17 @@ public/
 
 ## Key Configuration Files
 
-- **wrangler.jsonc**: Workers configuration with Assets binding
-- **astro.config.mjs**: Cloudflare adapter with Image Service
+- **wrangler.jsonc**: Workers Static Assets configuration (staging deployments)
+- **astro.config.mjs**: Static output with site URL configuration
+  - `site: process.env.SITE_URL` - No fallback, undefined if not set
+  - When undefined: Astro won't generate sitemaps or canonical URLs (affects SEO)
+  - Set via `SITE_URL` environment variable (GitHub Actions: `vars.SITE_URL`)
 - **tsconfig.json**: TypeScript strict mode
-- **src/env.d.ts**: Cloudflare runtime type definitions
+- **.github/workflows/gh-pages-deploy.yml**: Production deployment automation
+  - Checks for `SITE_URL` variable and warns if not set
+  - Deployment succeeds without it, but SEO features disabled
 
-## Astro + Workers Patterns
+## Astro Static Site Patterns
 
 ### Static Components (Zero JS)
 - `.astro` files render to static HTML by default
@@ -60,10 +67,10 @@ public/
 - Props must be serializable (no functions)
 - Use sparingly for better performance
 
-### Server Routes (Full-Stack)
-- Create `.astro` files with `export const GET()`, `export const POST()`, etc.
-- Access Cloudflare runtime via `Astro.locals`
-- Can add KV, D1, R2 bindings to `wrangler.jsonc` as needed
+### Note on Server Routes
+- This project is configured for **static output only**
+- No server-side rendering or API routes
+- All pages are pre-rendered at build time
 
 ## Styling & Components
 
@@ -79,12 +86,30 @@ Not yet defined. Decisions needed:
 2. Create reusable `.astro` components in `src/components/`
 3. Run `npm run dev` for local development
 4. Test with Workers runtime using `npm run preview`
-5. Deploy with `npm run deploy`
+5. Deploy to staging with `npm run deploy:staging`
+6. Push to `main` branch for automatic production deployment
+
+## Deployment
+
+This project uses a dual deployment strategy:
+- **Staging**: Cloudflare Workers Static Assets (manual via `npm run deploy:staging`)
+- **Production**: GitHub Pages (automatic via GitHub Actions on push to `main`)
+
+**For complete deployment instructions**, see [docs/deployment.md](../docs/deployment.md):
+- Staging deployment to Cloudflare Workers
+- Production deployment setup for GitHub Pages
+- GitHub repository configuration
+- Custom domain setup and DNS configuration
+- Troubleshooting guide
 
 ## Constraints & Decisions
 
-- Static-first approach: Generate what you can at build time
-- Workers for edge serving and optional server logic
+- Static-only approach: All pages pre-rendered at build time
+- No server-side rendering or API routes
+- Dual deployment: Workers (staging) + GitHub Pages (production)
 - TypeScript strict mode enforced
-- Observability enabled for production
+- Observability enabled for staging
 - No framework components added yet (pure Astro)
+- SITE_URL is optional but strongly recommended for SEO (sitemaps, canonical URLs)
+  - No fallback to localhost to avoid generating incorrect URLs
+  - GitHub Actions workflow warns if not configured
