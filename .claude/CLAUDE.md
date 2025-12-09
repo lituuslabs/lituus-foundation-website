@@ -77,11 +77,8 @@ public/
 
 ## Styling & Components
 
-Not yet defined. Decisions needed:
-- CSS approach (Tailwind, CSS modules, plain CSS, etc.)
-- Component library or custom
-- Dark mode strategy
-- Design system/tokens
+- **CSS Framework**: Tailwind CSS 4.1.17
+- **Images in CSS**: Always use Tailwind classes (e.g., `bg-[url('/images/...')]`) instead of inline styles, as Tailwind processes through Vite and respects BASE_PATH configuration
 
 ## Development Workflow
 
