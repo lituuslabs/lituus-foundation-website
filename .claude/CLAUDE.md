@@ -46,8 +46,13 @@ public/
 
 - **wrangler.jsonc**: Workers Static Assets configuration (staging deployments)
 - **astro.config.mjs**: Static output with site URL configuration
+  - `site: process.env.SITE_URL` - No fallback, undefined if not set
+  - When undefined: Astro won't generate sitemaps or canonical URLs (affects SEO)
+  - Set via `SITE_URL` environment variable (GitHub Actions: `vars.SITE_URL`)
 - **tsconfig.json**: TypeScript strict mode
 - **.github/workflows/gh-pages-deploy.yml**: Production deployment automation
+  - Checks for `SITE_URL` variable and warns if not set
+  - Deployment succeeds without it, but SEO features disabled
 
 ## Astro Static Site Patterns
 
@@ -105,3 +110,6 @@ This project uses a dual deployment strategy:
 - TypeScript strict mode enforced
 - Observability enabled for staging
 - No framework components added yet (pure Astro)
+- SITE_URL is optional but strongly recommended for SEO (sitemaps, canonical URLs)
+  - No fallback to localhost to avoid generating incorrect URLs
+  - GitHub Actions workflow warns if not configured
