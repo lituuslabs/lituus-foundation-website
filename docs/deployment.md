@@ -84,22 +84,38 @@ on:
 2. Under **Source**, select: **GitHub Actions**
 3. Save the configuration
 
-#### 2. Configure Site URL (Recommended)
+#### 2. Configure Environment Variables (Recommended)
+
+Go to repository **Settings** → **Secrets and variables** → **Actions** → **Variables** tab
+
+##### SITE_URL (Recommended for SEO)
 
 **Why this matters:** Without `SITE_URL`, Astro will not generate sitemaps or canonical URLs, which negatively impacts SEO and social sharing.
 
-1. Go to repository **Settings** → **Secrets and variables** → **Actions**
-2. Select the **Variables** tab
-3. Click **New repository variable**
-4. Create variable:
-   - **Name**: `SITE_URL`
-   - **Value**: `https://yourdomain.com` (your production URL)
+Create variable:
+- **Name**: `SITE_URL`
+- **Value**: `https://yourdomain.com` (your production URL)
 
 Example values:
 - Custom domain: `https://yourdomain.org`
 - GitHub Pages default: `https://<username>.github.io/<repo-name>`
 
 **Note:** If you skip this step, the GitHub Actions workflow will show a warning, but deployment will still succeed.
+
+##### BASE_PATH (Required for GitHub Pages Subdirectory)
+
+**Why this matters:** When deploying to `github.io/<repo-name>`, assets need the correct path prefix. Without `BASE_PATH`, CSS, JavaScript, and images will fail to load.
+
+Create variable:
+- **Name**: `BASE_PATH`
+- **Value**: `/lituus-foundation-website` (must match your repository name)
+
+**When to set BASE_PATH:**
+- ✅ **Using `github.io/repo-name` URL**: Set to `/repo-name`
+- ❌ **Using custom domain**: Leave unset or set to `/`
+- ❌ **Cloudflare Workers staging**: Not needed (always uses root path)
+
+**Important:** If you switch from GitHub Pages subdirectory to a custom domain later, you must remove or change `BASE_PATH` to `/` for assets to work correctly.
 
 #### 3. Add Custom Domain
 
@@ -284,6 +300,9 @@ No environment variables needed. Site URL defaults to Workers domain.
 
 Set via GitHub repository variables:
 - `SITE_URL`: Production URL (recommended for SEO)
+- `BASE_PATH`: Path prefix for subdirectory deployment
+  - Set to `/repo-name` when using `github.io/<repo-name>`
+  - Leave unset or set to `/` when using custom domain
 
 ## Monitoring
 

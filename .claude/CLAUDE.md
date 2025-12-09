@@ -45,10 +45,13 @@ public/
 ## Key Configuration Files
 
 - **wrangler.jsonc**: Workers Static Assets configuration (staging deployments)
-- **astro.config.mjs**: Static output with site URL configuration
+- **astro.config.mjs**: Static output with site URL and base path configuration
   - `site` is conditionally set only when `SITE_URL` is defined (omitted otherwise)
   - When omitted: Astro won't generate sitemaps or canonical URLs (affects SEO)
-  - Set via `SITE_URL` environment variable (GitHub Actions: `vars.SITE_URL`)
+  - `base` path configured via `BASE_PATH` environment variable (defaults to `/`)
+  - Set via environment variables:
+    - `SITE_URL`: Full production URL (GitHub Actions: `vars.SITE_URL`)
+    - `BASE_PATH`: Path prefix for assets (GitHub Actions: `vars.BASE_PATH`)
 - **tsconfig.json**: TypeScript strict mode
 - **.github/workflows/gh-pages-deploy.yml**: Production deployment automation
   - Checks for `SITE_URL` variable and warns if not set

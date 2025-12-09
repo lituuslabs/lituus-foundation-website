@@ -33,6 +33,7 @@ jobs:
         uses: withastro/action@v5
         env:
           SITE_URL: ${{ vars.SITE_URL }}
+          BASE_PATH: ${{ vars.BASE_PATH }}
 
   deploy:
     needs: build
