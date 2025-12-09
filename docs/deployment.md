@@ -283,7 +283,7 @@ No environment variables needed. Site URL defaults to Workers domain.
 ### Production (GitHub Pages)
 
 Set via GitHub repository variables:
-- `SITE_URL`: Production URL (required)
+- `SITE_URL`: Production URL (recommended for SEO)
 
 ## Monitoring
 
