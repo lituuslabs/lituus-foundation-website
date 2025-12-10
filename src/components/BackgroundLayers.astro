@@ -6,16 +6,10 @@ import AnimatedGrid from './AnimatedGrid.astro';
 
 <div class="fixed inset-0 z-0">
   <!-- Background Image: Pink Mountain Dawn -->
-  <div class="absolute inset-0 bg-[url('/images/mountain-ranges.jpg')] bg-cover bg-center"></div>
+  <div class="absolute inset-0 bg-[url('/images/mountain-ranges.webp')] bg-cover bg-center"></div>
 
   <!-- Animated Cloud Layers -->
   <AnimatedClouds />
-
-  <!-- Gradient Overlay for Contrast -->
-  <div class="absolute inset-0 bg-linear-to-b from-[#795364] via-[#594848]/60 to-[#321824]/50 mix-blend-multiply"></div>
-
-  <!-- Noise Texture for film grain feel - using CSS grain effect instead of SVG filter -->
-  <div class="absolute inset-0 w-full h-full pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%22.5%22 numOctaves=%221%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%22 height=%22100%22 filter=%22url(%23n)%22 opacity=%22.05%22/></svg>'); opacity: 0.05;"></div>
 
   <!-- Golden Ratio Grid Overlay -->
   <AnimatedGrid />

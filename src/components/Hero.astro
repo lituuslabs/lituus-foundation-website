@@ -98,11 +98,13 @@ import RotatingCoil from './RotatingCoil.astro';
     animation-delay: 0.3s;
   }
 
-  /* Parallax layers */
+  /* Parallax layers - optimized for GPU compositing */
   .hero-coil,
   .hero-content,
   .hero-scroll {
     will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Reduced Motion */
@@ -120,6 +122,7 @@ import RotatingCoil from './RotatingCoil.astro';
     .hero-content,
     .hero-scroll {
       will-change: auto;
+      transform: none !important;
     }
   }
 </style>
@@ -223,7 +226,7 @@ import RotatingCoil from './RotatingCoil.astro';
   }
 
   function initParallax() {
-    const hero = document.querySelector('header.relative.min-h-screen') as HTMLElement;
+    const hero = document.querySelector('header#hero') as HTMLElement;
     if (!hero) return;
 
     const coil = hero.querySelector('.hero-coil') as HTMLElement;
@@ -233,54 +236,110 @@ import RotatingCoil from './RotatingCoil.astro';
     // Check for reduced motion preference
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    let ticking = false;
+    // Cache heroHeight
+    let heroHeight = hero.offsetHeight;
+
+    // Update on resize with debounce
+    let resizeTimeout: number;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = window.setTimeout(() => {
+        heroHeight = hero.offsetHeight;
+      }, 100);
+    }, { passive: true });
+
+    let isScrolling = false;
+    let lastScrollY = window.scrollY;
 
     function updateParallax() {
+      if (!isScrolling) return;
+
       const scrollY = window.scrollY;
-      const heroHeight = hero.offsetHeight;
 
-      // Only apply parallax when hero is in view
-      if (scrollY < heroHeight) {
-        // Calculate fade-out opacity (starts fading at 20% scroll, fully faded at 60%)
-        const fadeStart = heroHeight * 0.2;
-        const fadeEnd = heroHeight * 0.6;
-        const opacity = Math.max(0, Math.min(1, 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart)));
-
-        // Coil moves slower (0.3x scroll speed) - feels further back
+      // Early exit when off-screen
+      if (scrollY >= heroHeight) {
         if (coil) {
-          coil.style.transform = `translateY(${scrollY * 0.3}px)`;
-          coil.style.opacity = String(opacity);
+          coil.style.transform = 'translate3d(0, 0, 0)';
+          coil.style.opacity = '0';
         }
-
-        // Content moves faster (0.6x scroll speed) - feels closer
         if (content) {
-          content.style.transform = `translateY(${scrollY * 0.6}px)`;
-          content.style.opacity = String(opacity);
+          content.style.transform = 'translate3d(0, 0, 0)';
+          content.style.opacity = '0';
         }
-
-        // Scroll indicator fades out faster
         if (scrollIndicator) {
-          const scrollIndicatorOpacity = Math.max(0, 1 - scrollY / (heroHeight * 0.3));
-          scrollIndicator.style.transform = `translateY(${scrollY * 0.5}px)`;
-          scrollIndicator.style.opacity = String(scrollIndicatorOpacity);
+          scrollIndicator.style.transform = 'translate3d(0, 0, 0)';
+          scrollIndicator.style.opacity = '0';
         }
+        isScrolling = false;
+        return;
       }
 
-      ticking = false;
+      // Calculate scroll progress (0 to 1)
+      const scrollProgress = scrollY / heroHeight;
+
+      // Use integer pixel values to avoid sub-pixel rendering
+      const coilY = Math.round(scrollY * 0.3);
+      const contentY = Math.round(scrollY * 0.6);
+      const scrollY_val = Math.round(scrollY * 0.5);
+
+      // Calculate fade-out opacity (starts fading at 20% scroll, fully faded at 60%)
+      const fadeStart = 0.2;
+      const fadeEnd = 0.6;
+      const opacity = Math.max(0, Math.min(1, 1 - (scrollProgress - fadeStart) / (fadeEnd - fadeStart)));
+
+      // Scroll indicator fades faster (fully faded at 30%)
+      const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress / 0.3);
+
+      // Update transforms and opacity
+      if (coil) {
+        coil.style.transform = `translate3d(0, ${coilY}px, 0)`;
+        coil.style.opacity = String(opacity);
+      }
+      if (content) {
+        content.style.transform = `translate3d(0, ${contentY}px, 0)`;
+        content.style.opacity = String(opacity);
+      }
+      if (scrollIndicator) {
+        scrollIndicator.style.transform = `translate3d(0, ${scrollY_val}px, 0)`;
+        scrollIndicator.style.opacity = String(scrollIndicatorOpacity);
+      }
+
+      lastScrollY = scrollY;
+
+      // Continue loop while scrolling
+      if (isScrolling) {
+        requestAnimationFrame(updateParallax);
+      }
     }
 
     function onScroll() {
-      if (!ticking) {
+      if (!isScrolling) {
+        isScrolling = true;
         requestAnimationFrame(updateParallax);
-        ticking = true;
       }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    // Stop scrolling flag after scroll ends
+    let scrollTimeout: number;
+    function onScrollEnd() {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = window.setTimeout(() => {
+        isScrolling = false;
+      }, 50);
+    }
 
-    // Cleanup on page transition
+    // Initial call
+    updateParallax();
+
+    window.addEventListener('scroll', () => {
+      onScroll();
+      onScrollEnd();
+    }, { passive: true });
+
+    // Cleanup
     document.addEventListener('astro:before-swap', () => {
       window.removeEventListener('scroll', onScroll);
+      clearTimeout(scrollTimeout);
     }, { once: true });
   }
 
