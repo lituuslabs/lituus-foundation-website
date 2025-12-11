@@ -6,6 +6,10 @@
   --font-serif: "Cormorant Garamond", serif;
 }
 
+:root {
+  --navbar-height: 6rem;
+}
+
 /* Base Styles */
 body {
   background-color: #1a1a1a;
@@ -23,6 +27,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: var(--navbar-height);
 }
 
 /* Glass Morphism Effects */
