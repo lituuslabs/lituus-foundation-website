@@ -247,7 +247,6 @@ import RotatingCoil from './RotatingCoil.astro';
     }, { passive: true });
 
     let isScrolling = false;
-    let lastScrollY = window.scrollY;
 
     function updateParallax() {
       if (!isScrolling) return;
@@ -301,8 +300,6 @@ import RotatingCoil from './RotatingCoil.astro';
         scrollIndicator.style.transform = `translate3d(0, ${scrollY_val}px, 0)`;
         scrollIndicator.style.opacity = String(scrollIndicatorOpacity);
       }
-
-      lastScrollY = scrollY;
 
       // Continue loop while scrolling
       if (isScrolling) {

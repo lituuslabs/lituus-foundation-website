@@ -45,7 +45,7 @@ const {
 
     <script>
       // Scroll detection and navbar height measurement
-      const navbar = document.querySelector('[data-navbar]');
+      const navbar = document.querySelector('[data-navbar]') as HTMLElement;
       if (navbar) {
         // Measure navbar height and set CSS variable
         const updateNavbarHeight = () => {
