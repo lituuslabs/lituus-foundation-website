@@ -5,8 +5,8 @@ interface Props {
 }
 
 const {
-  title = "Lituus Foundation - Guardians of Decentralized Truth",
-  description = "Building infrastructure for truth that doesn't require trust."
+  title = "Lituus Foundation - The Frontier of Decentralized Truth",
+  description = "The foundation behind furtherthering Augur's oracle experimentation"
 } = Astro.props;
 ---
 
@@ -44,9 +44,19 @@ const {
     </div>
 
     <script>
-      // Scroll detection for navbar
+      // Scroll detection and navbar height measurement
       const navbar = document.querySelector('[data-navbar]');
       if (navbar) {
+        // Measure navbar height and set CSS variable
+        const updateNavbarHeight = () => {
+          const height = navbar.offsetHeight;
+          document.documentElement.style.setProperty('--navbar-height', `${height}px`);
+        };
+
+        // Update on load and resize
+        updateNavbarHeight();
+        window.addEventListener('resize', updateNavbarHeight);
+
         const sentinel = document.createElement('div');
         sentinel.style.cssText = 'position: absolute; top: 50px; height: 1px; width: 100%; pointer-events: none;';
         document.body.insertBefore(sentinel, document.body.firstChild);
