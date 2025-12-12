@@ -1,0 +1,210 @@
+---
+// Lituus curve: r = a/√θ (polar equation: r²θ = a²)
+// A spiral curve with characteristic tail, named after the augur's staff
+// Has an inflection point at θ ≈ 0.5 radians
+interface Props {
+  className?: string;
+}
+
+const { className = "" } = Astro.props;
+
+// Configuration
+const viewBoxSize = 800;
+const center = viewBoxSize / 2;
+const a = 250; // The constant in r = a/√θ
+
+// For the classic lituus with visible tail and spiral
+// We plot from small theta (outer tail) to larger theta (inner spiral)
+const thetaStart = 0.2; // Avoid θ=0 where r→∞
+const thetaEnd = 15; // Deep into the spiral
+const steps = 800; // Smooth curve
+
+// Generate the lituus curve: r = a/√θ
+const points: Array<{x: number, y: number, theta: number}> = [];
+
+for (let i = 0; i <= steps; i++) {
+  const theta = thetaStart + (thetaEnd - thetaStart) * (i / steps);
+  const r = a / Math.sqrt(theta); // The lituus equation
+  const x = center + r * Math.cos(theta);
+  const y = center + r * Math.sin(theta);
+  points.push({ x, y, theta });
+}
+
+// Break the curve into segments and calculate angle for each
+const segmentSize = 4; // How many points per segment
+const segments: Array<{pathData: string, angleDeg: number, index: number}> = [];
+
+for (let i = 0; i < points.length - 1; i += segmentSize) {
+  const endIdx = Math.min(i + segmentSize, points.length - 1);
+  const segmentPoints = points.slice(i, endIdx + 1); // Include endpoint for continuity
+
+  const pathData = segmentPoints.map((p, idx) =>
+    idx === 0 ? `M ${p.x.toFixed(2)} ${p.y.toFixed(2)}` : `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+  ).join(' ');
+
+  // Get the angle of the midpoint of this segment from the center
+  const midPoint = segmentPoints[Math.floor(segmentPoints.length / 2)];
+  const dx = midPoint.x - center;
+  const dy = midPoint.y - center;
+  const angleRad = Math.atan2(dy, dx);
+  const angleDeg = (angleRad * 180 / Math.PI + 360) % 360; // Normalize to 0-360
+
+  segments.push({ pathData, angleDeg, index: i });
+}
+
+// Generate opposite lituus (rotated 180 degrees, drawn from center outward)
+const oppositePoints: Array<{x: number, y: number, theta: number}> = [];
+
+for (let i = 0; i <= steps; i++) {
+  // Reverse the order: start from thetaEnd (center) to thetaStart (outer)
+  const theta = thetaEnd - (thetaEnd - thetaStart) * (i / steps);
+  const r = a / Math.sqrt(theta);
+  const x = center + r * Math.cos(theta + Math.PI);
+  const y = center + r * Math.sin(theta + Math.PI);
+  oppositePoints.push({ x, y, theta });
+}
+
+// Break opposite curve into segments
+const oppositeSegments: Array<{pathData: string, angleDeg: number, index: number}> = [];
+
+for (let i = 0; i < oppositePoints.length - 1; i += segmentSize) {
+  const endIdx = Math.min(i + segmentSize, oppositePoints.length - 1);
+  const segmentPoints = oppositePoints.slice(i, endIdx + 1);
+
+  const pathData = segmentPoints.map((p, idx) =>
+    idx === 0 ? `M ${p.x.toFixed(2)} ${p.y.toFixed(2)}` : `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+  ).join(' ');
+
+  const midPoint = segmentPoints[Math.floor(segmentPoints.length / 2)];
+  const dx = midPoint.x - center;
+  const dy = midPoint.y - center;
+  const angleRad = Math.atan2(dy, dx);
+  const angleDeg = (angleRad * 180 / Math.PI + 360) % 360;
+
+  oppositeSegments.push({ pathData, angleDeg, index: i });
+}
+---
+
+<div class={`lituus-shape text-white ${className}`}>
+  <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="transform: scaleX(-1);">
+    <!-- Each segment with staggered opacity animation -->
+    {segments.map((segment, idx) => {
+      // Calculate normalized position (0 = start/outer, 1 = end/inner)
+      const normalizedPos = idx / segments.length;
+
+      // Apply ease-out curve: start fast (outer), decelerate toward inner spiral
+      // Using x^2 for gentler acceleration
+      const easedProgress = 1 - Math.pow(1 - normalizedPos, 2);
+
+      const drawDuration = 4; // Time for the whole curve to draw
+      const delay = easedProgress * drawDuration;
+
+      // Opacity falloff at both ends: fade at outer tail AND inner spiral
+      // Use a bell curve centered around 0.5 (middle of the path)
+      const distanceFromCenter = Math.abs(normalizedPos - 0.5) * 2; // 0 at center, 1 at ends
+      const bellCurve = 1 - Math.pow(distanceFromCenter, 1.2); // Smooth falloff toward ends
+      const maxOpacity = 0.02 + (bellCurve * 0.38); // Range: 0.02 (ends) to 0.4 (middle)
+
+      return (
+        <path
+          d={segment.pathData}
+          stroke="white"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="butt"
+          stroke-linejoin="miter"
+          class="animated-segment"
+          style={`
+            --appear-delay: ${delay}s;
+            --max-opacity: ${maxOpacity};
+          `}
+        />
+      );
+    })}
+
+    <!-- Opposite lituus segments with staggered animation -->
+    {oppositeSegments.map((segment, idx) => {
+      // Calculate normalized position (0 = start/inner, 1 = end/outer)
+      const normalizedPos = idx / oppositeSegments.length;
+
+      // Apply ease-in curve: small delays at start (fast), larger delays toward end (slow)
+      // x^2 means early segments have tiny delays, later segments have big delays
+      const easedProgress = Math.pow(normalizedPos, 2);
+
+      const drawDuration = 4;
+      const delay = easedProgress * drawDuration;
+
+      // Opacity falloff at both ends: fade at inner spiral AND outer tail
+      const distanceFromCenter = Math.abs(normalizedPos - 0.5) * 2;
+      const bellCurve = 1 - Math.pow(distanceFromCenter, 1.2);
+      const maxOpacity = 0.02 + (bellCurve * 0.38);
+
+      return (
+        <path
+          d={segment.pathData}
+          stroke="white"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="butt"
+          stroke-linejoin="miter"
+          class="animated-segment-opposite"
+          style={`
+            --appear-delay: ${delay}s;
+            --max-opacity: ${maxOpacity};
+          `}
+        />
+      );
+    })}
+  </svg>
+</div>
+
+<style>
+  .lituus-shape {
+    /* Container styles if needed */
+  }
+
+  /* Each segment fades in with staggered delay, holds, then all fade out together */
+  .animated-segment {
+    stroke-opacity: 0;
+    animation: segment-draw 8s ease-out infinite;
+    animation-delay: var(--appear-delay, 0s);
+  }
+
+  @keyframes segment-draw {
+    /* Fade in quickly */
+    0% {
+      stroke-opacity: 0;
+    }
+    5% {
+      stroke-opacity: var(--max-opacity, 0.3);
+    }
+    /* Hold visible until fade out phase */
+    70% {
+      stroke-opacity: var(--max-opacity, 0.3);
+    }
+    /* Fade out */
+    85% {
+      stroke-opacity: 0;
+    }
+    100% {
+      stroke-opacity: 0;
+    }
+  }
+
+  /* Opposite curve: same animation but offset to start after curve 1 */
+  .animated-segment-opposite {
+    stroke-opacity: 0;
+    animation: segment-draw 8s ease-out infinite;
+    /* Add base delay (8s cycle offset) + individual segment delay */
+    animation-delay: calc(4s + var(--appear-delay, 0s));
+  }
+
+  /* Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animated-segment,
+    .animated-segment-opposite {
+      animation: none;
+      stroke-opacity: 0.3;
+    }
+  }
+</style>
