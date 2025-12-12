@@ -6,10 +6,10 @@
   /* Cloud/Fog drift animation - GPU accelerated with transform */
   @keyframes fog-drift {
     from {
-      transform: translateX(0);
+      transform: translateX(-100vw);
     }
     to {
-      transform: translateX(-100vw);
+      transform: translateX(0);
     }
   }
 
@@ -20,36 +20,25 @@
     height: 100%;
     width: 200vw;
     background-repeat: repeat-x;
-    background-size: contain; /* Each tile = viewport width */
-    /*mix-blend-mode: overlay;*/
+    background-size: 100vw auto; /* Each tile = exactly viewport width for seamless loop */
     will-change: transform;
     transform: translateZ(0);
-    opacity: 0.5;
   }
 
   .animate-fog-slow {
-    animation: fog-drift 90s linear infinite;
-  }
-
-  .animate-fog-medium {
-    animation: fog-drift 40s linear infinite;
+    animation: fog-drift 120s linear infinite;
   }
 
   .animate-fog-fast {
-    animation: fog-drift 30s linear infinite;
+    animation: fog-drift 60s linear infinite;
   }
 
-  .fog-layer-medium,
-  .fog-layer-fast {
-    opacity: 0.4;
-  }
+  /*.fog-layer-fast { opacity: 0.4 }*/
 </style>
 
 <div class="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
   <!-- Cloud Layer 1 - Slow -->
-  <div class="fog-layer animate-fog-slow bg-[url('/images/cloud-1.webp')]"></div>
-  <!-- Cloud Layer 2 - Fast -->
-  <!-- <div class="fog-layer fog-layer-fast animate-fog-fast bg-[url('/images/cloud-2.jpg')]"></div> -->
+  <div class="fog-layer animate-fog-slow bg-[url('/images/cloud-2.webp')]"></div>
   <!-- Cloud Layer 3 - Medium -->
-  <div class="fog-layer fog-layer-medium animate-fog-medium bg-[url('/images/cloud-2.webp')]"></div>
+  <div class="fog-layer animate-fog-fast bg-[url('/images/cloud-1.webp')]"></div>
 </div>

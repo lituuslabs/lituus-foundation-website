@@ -81,7 +81,21 @@
 <style>
   @reference "../styles/global.css";
 
-  [data-navbar].scrolled {
-    @apply bg-black/10 backdrop-blur-lg border-b border-b-white/15;
+  [data-navbar]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0) 98%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  [data-navbar].scrolled::before {
+    opacity: 1;
   }
 </style>
